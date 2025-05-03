@@ -1,19 +1,42 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
 
 db = SQLAlchemy()
 
-class User(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+class Usuario(db.Model):
+    __tablename__ = 'usuario'
 
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(50), nullable=False)
+    apellido = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    favoritos = db.relationship('Favorito', back_populates='usuario')
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
-        }
+class Personaje(db.Model):
+    __tablename__ = 'personaje'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.String(255))
+    favoritos = db.relationship('Favorito', back_populates='personaje')
+
+class Planeta(db.Model):
+    __tablename__ = 'planeta'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    clima = db.Column(db.String(100))
+    terreno = db.Column(db.String(100))
+    favoritos = db.relationship('Favorito', back_populates='planeta')
+
+class Favorito(db.Model):
+    __tablename__ = 'favorito'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    personaje_id = db.Column(db.Integer, db.ForeignKey('personaje.id'), nullable=True)
+    planeta_id = db.Column(db.Integer, db.ForeignKey('planeta.id'), nullable=True)
+
+    usuario = db.relationship('Usuario', back_populates='favoritos')
+    personaje = db.relationship('Personaje', back_populates='favoritos')
+    planeta = db.relationship('Planeta', back_populates='favoritos')
